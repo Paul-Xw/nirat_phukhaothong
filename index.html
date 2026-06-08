@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>นักสืบน้อยตามรอยนิราศภูเขาทอง</title>
+  <style>
+    :root{
+      --navy:#153B6F;
+      --blue:#3DA7E0;
+      --mint:#E8FFF5;
+      --cream:#FFF8E7;
+      --pink:#FFE6EF;
+      --green:#E7F8D8;
+      --orange:#FFB84D;
+      --red:#E94B5F;
+      --card:#ffffff;
+      --shadow:0 10px 25px rgba(15,40,80,.13);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: "Tahoma","Noto Sans Thai",system-ui,sans-serif;
+      background:linear-gradient(180deg,#EAF8FF 0%,#FFF8E7 100%);
+      color:#263238;
+      min-height:100vh;
+    }
+    .app{
+      width:min(1080px,100%);
+      margin:auto;
+      padding:18px;
+    }
+    .hero{
+      background:linear-gradient(135deg,#ffffff 0%,#E8F7FF 50%,#FFF4D6 100%);
+      border:4px solid #fff;
+      border-radius:32px;
+      box-shadow:var(--shadow);
+      padding:22px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero:before{
+      content:"🚤";
+      font-size:76px;
+      position:absolute;
+      right:24px;
+      top:12px;
+      transform:rotate(-8deg);
+      opacity:.22;
+    }
+    h1{
+      margin:0;
+      font-size:clamp(28px,5vw,52px);
+      color:var(--navy);
+      text-shadow:2px 2px 0 #fff, 4px 4px 0 #FFD75D;
+      line-height:1.15;
+    }
+    .subtitle{
+      font-size:clamp(16px,2.4vw,24px);
+      margin:8px 0 0;
+      color:#8B3E1F;
+      font-weight:700;
+    }
+    .panel{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-top:18px;
+      border:3px solid rgba(255,255,255,.8);
+    }
+    .topbar{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
+    .badge{
+      background:#fff;
+      border:3px solid #D9EEFF;
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:800;
+      color:var(--navy);
+      box-shadow:0 4px 12px rgba(0,0,0,.07);
+    }
+    .progressWrap{
+      flex:1;
+      min-width:220px;
+      background:#E2EFF8;
+      height:18px;
+      border-radius:99px;
+      overflow:hidden;
+      border:2px solid #fff;
+    }
+    .progress{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg,#40C4FF,#4CAF50,#FFD54F);
+      transition:.3s;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+    .stageCard{
+      border:none;
+      cursor:pointer;
+      text-align:left;
+      padding:16px;
+      border-radius:22px;
+      min-height:180px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      transition:.18s transform,.18s box-shadow;
+      position:relative;
+      overflow:hidden;
+    }
+    .stageCard:hover{transform:translateY(-3px)}
+    .stageCard.locked{opacity:.55;filter:grayscale(.3);cursor:not-allowed}
+    .stageCard.done:after{
+      content:"✓ ผ่านแล้ว";
+      position:absolute;
+      right:12px;
+      bottom:12px;
+      background:#26A65B;
+      color:#fff;
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:800;
+    }
+    .stageNo{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:42px;height:42px;
+      border-radius:50%;
+      background:var(--navy);
+      color:#fff;
+      font-weight:900;
+      font-size:22px;
+      margin-bottom:8px;
+    }
+    .stageTitle{
+      font-size:22px;
+      font-weight:900;
+      color:var(--navy);
+      margin:4px 0;
+    }
+    .stageDesc{font-size:15px;line-height:1.55}
+    .bangkok{background:linear-gradient(180deg,#FFF2CD,#fff)}
+    .nonthaburi{background:linear-gradient(180deg,#E9FBD8,#fff)}
+    .pathum{background:linear-gradient(180deg,#FFE5EF,#fff)}
+    .ayutthaya{background:linear-gradient(180deg,#E5F2FF,#fff)}
+    .screen{display:none}
+    .screen.active{display:block}
+    .mapBox{
+      background:linear-gradient(180deg,#D9F5FF,#FFFFFF);
+      border-radius:26px;
+      padding:16px;
+      display:grid;
+      grid-template-columns:1fr 1.2fr;
+      gap:16px;
+      align-items:stretch;
+    }
+    .river{
+      background:linear-gradient(180deg,#74D4FF,#BFEFFF);
+      border-radius:40px;
+      padding:18px;
+      position:relative;
+      min-height:420px;
+      box-shadow:inset 0 0 0 6px rgba(255,255,255,.65);
+    }
+    .boat{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      font-size:42px;
+      transition:.45s top ease;
+      top:18px;
+      filter:drop-shadow(0 7px 6px rgba(0,0,0,.18));
+    }
+    .riverPath{
+      position:absolute;
+      inset:16px;
+      border-left:8px dashed rgba(255,255,255,.85);
+      border-radius:50%;
+      left:50%;
+      transform:translateX(-50%);
+    }
+    .stopList{
+      display:grid;
+      gap:9px;
+      align-content:start;
+    }
+    .stop{
+      background:#fff;
+      border:2px solid #DCEEFF;
+      border-radius:16px;
+      padding:10px 12px;
+      display:flex;
+      gap:9px;
+      align-items:center;
+      font-weight:800;
+      box-shadow:0 4px 12px rgba(0,0,0,.05);
+    }
+    .stop.activeStop{
+      border-color:#FFB84D;
+      background:#FFF5D6;
+      transform:scale(1.01);
+    }
+    .num{
+      width:32px;height:32px;border-radius:50%;
+      display:inline-flex;align-items:center;justify-content:center;
+      background:var(--blue);color:white;font-weight:900;flex:none;
+    }
+    .questionBox{
+      margin-top:16px;
+      background:#fff;
+      border-radius:24px;
+      padding:18px;
+      border:3px dashed #B8E2FF;
+    }
+    .qTitle{
+      font-size:24px;
+      color:var(--navy);
+      margin:0 0 8px;
+      font-weight:900;
+    }
+    .qText{
+      font-size:20px;
+      line-height:1.6;
+      font-weight:800;
+      margin:10px 0 14px;
+    }
+    .choices{
+      display:grid;
+      gap:10px;
+    }
+    .choice{
+      border:3px solid #E6EEF5;
+      background:#fff;
+      padding:13px 14px;
+      border-radius:16px;
+      text-align:left;
+      font-size:18px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .choice:hover{background:#F3FBFF;border-color:#74C9F5}
+    .choice.correct{background:#E9FFE9;border-color:#39B54A}
+    .choice.wrong{background:#FFE8EC;border-color:#E94B5F}
+    .btn{
+      border:none;
+      background:linear-gradient(135deg,#177DDC,#153B6F);
+      color:white;
+      border-radius:16px;
+      padding:13px 18px;
+      font-size:18px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(21,59,111,.22);
+    }
+    .btn.secondary{background:linear-gradient(135deg,#FFB84D,#F57C00)}
+    .btn.green{background:linear-gradient(135deg,#4CAF50,#198754)}
+    .btn.pink{background:linear-gradient(135deg,#FF7AAA,#D63384)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+    .feedback{
+      display:none;
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:16px;
+      font-weight:800;
+      line-height:1.55;
+    }
+    .feedback.good{display:block;background:#E8FFE9;border:2px solid #4CAF50;color:#0E6B28}
+    .feedback.bad{display:block;background:#FFE9EE;border:2px solid #E94B5F;color:#9B1227}
+    .miniArea{
+      display:grid;
+      gap:14px;
+    }
+    .matchGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .matchItem,.dropZone{
+      background:#fff;
+      border:3px solid #E5EEF8;
+      padding:13px;
+      border-radius:16px;
+      font-weight:800;
+      min-height:58px;
+    }
+    .drag{
+      cursor:grab;
+      background:#FFF6D8;
+      border-color:#FFD36A;
+    }
+    .dropZone{
+      background:#F5FBFF;
+      border-style:dashed;
+    }
+    .dropZone.filled{background:#E9FFE9;border-color:#48B86A}
+    .wordBank{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:10px 0;
+    }
+    .chip{
+      border:none;
+      background:#fff;
+      border:3px solid #CBE9FF;
+      border-radius:999px;
+      padding:10px 14px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .chip.selected{background:#153B6F;color:#fff}
+    .sortList{
+      display:grid;
+      gap:8px;
+    }
+    .sortItem{
+      padding:12px;
+      background:#fff;
+      border:3px solid #E5EEF8;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-weight:900;
+    }
+    .sortBtns button{
+      border:none;
+      background:#E5F4FF;
+      border-radius:10px;
+      padding:8px 10px;
+      cursor:pointer;
+      font-weight:900;
+      margin-left:4px;
+    }
+    .resultBox{
+      text-align:center;
+      padding:28px;
+      background:linear-gradient(180deg,#fff,#F2FBFF);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+    }
+    .bigScore{
+      font-size:72px;
+      font-weight:900;
+      color:#F57C00;
+      text-shadow:2px 2px 0 #fff;
+    }
+    .small{
+      font-size:14px;
+      color:#607D8B;
+    }
+    .teacherNote{
+      background:#FFF9E8;
+      border-left:8px solid #FFB84D;
+      border-radius:16px;
+      padding:12px 14px;
+      line-height:1.6;
+      margin-top:12px;
+      font-weight:700;
+    }
+    @media(max-width:860px){
+      .grid{grid-template-columns:1fr 1fr}
+      .mapBox{grid-template-columns:1fr}
+      .river{min-height:210px}
+      .riverPath{display:none}
+      .matchGrid{grid-template-columns:1fr}
+    }
+    @media(max-width:520px){
+      .grid{grid-template-columns:1fr}
+      .hero{padding:16px}
+      .qText{font-size:18px}
+      .choice{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <h1>🔎 นักสืบน้อยตามรอยนิราศภูเขาทอง</h1>
+      <p class="subtitle">เกมสืบสวนวรรณคดี 4 ด่าน + Mini Game 4 ด่าน</p>
+    </section>
+
+    <section class="panel">
+      <div class="topbar">
+        <div class="badge">คะแนน: <span id="score">0</span></div>
+        <div class="badge">หลักฐาน: <span id="clues">0</span>/8</div>
+        <div class="progressWrap"><div id="progress" class="progress"></div></div>
+      </div>
+
+      <div id="home" class="screen active">
+        <h2>เลือกด่านการสืบสวน</h2>
+        <p><b>ภารกิจ:</b> ตามหาสมุดบันทึกนิราศที่หายไป ผ่านเส้นทางเรือจากกรุงเทพฯ ไปอยุธยา</p>
+        <div class="grid" id="stageGrid"></div>
+        <div class="teacherNote">
+          วิธีเล่นในห้องเรียน: แบ่งเด็กเป็นทีม ให้แต่ละทีมเล่น 1 ด่าน แล้วนำ “หลักฐาน” ที่ได้มารวมกันเพื่อไขคดีสุดท้าย
+        </div>
+      </div>
+
+      <div id="stageScreen" class="screen">
+        <div class="topbar">
+          <button class="btn secondary" onclick="goHome()">← กลับหน้าเลือกด่าน</button>
+          <div class="badge" id="stageBadge"></div>
+        </div>
+        <div class="mapBox">
+          <div class="river">
+            <div class="riverPath"></div>
+            <div id="boat" class="boat">🚤</div>
+          </div>
+          <div class="stopList" id="stopList"></div>
+        </div>
+        <div class="questionBox">
+          <div class="qTitle" id="qTitle"></div>
+          <div class="qText" id="qText"></div>
+          <div class="choices" id="choices"></div>
+          <div id="feedback" class="feedback"></div>
+          <div class="actions">
+            <button class="btn" id="nextQ" onclick="nextQuestion()" disabled>ข้อต่อไป</button>
+            <button class="btn pink" id="miniBtn" onclick="startMiniGame()" style="display:none">เล่น Mini Game ของด่านนี้</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="miniScreen" class="screen">
+        <div class="topbar">
+          <button class="btn secondary" onclick="backToStage()">← กลับด่าน</button>
+          <div class="badge" id="miniBadge"></div>
+        </div>
+        <div class="questionBox">
+          <div class="qTitle" id="miniTitle"></div>
+          <div id="miniContent" class="miniArea"></div>
+          <div id="miniFeedback" class="feedback"></div>
+          <div class="actions">
+            <button class="btn green" onclick="checkMiniGame()">ตรวจคำตอบ Mini Game</button>
+            <button class="btn" onclick="finishStage()">จบด่านนี้</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="resultScreen" class="screen">
+        <div class="resultBox">
+          <h2>🎉 สรุปผลนักสืบวรรณคดี</h2>
+          <div class="bigScore" id="finalScore">0</div>
+          <p id="rankText"></p>
+          <p><b>ข้อคิดสำคัญ:</b> นิราศภูเขาทองสอนให้เห็นการเดินทาง ชีวิต ความทรงจำ คำพูดที่ดี และความไม่เที่ยง</p>
+          <div class="actions" style="justify-content:center">
+            <button class="btn" onclick="resetGame()">เล่นใหม่</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+const stages = [
+  {
+    id:0, cls:"bangkok", title:"กรุงเทพมหานคร", icon:"🏙️",
+    desc:"จุดเริ่มต้นจากวัดราชบุรณะ ผ่านหน้าวัง วัดประโคนปัก และโรงเหล้า",
+    stops:["วัดราชบุรณะ","หน้าวัง","วัดประโคนปัก","โรงเหล้า"],
+    questions:[
+      {stop:0, q:"สุนทรภู่เริ่มต้นการเดินทางในนิราศภูเขาทองจากสถานที่ใด?", choices:["วัดราชบุรณะ","วัดอรุณ","วัดพระเมรุ","ตลาดขวัญ"], ans:0, explain:"เริ่มต้นจากวัดราชบุรณะ แล้วลงเรือเดินทางไปอยุธยา"},
+      {stop:1, q:"เมื่อผ่านหน้าวัง สุนทรภู่ระลึกถึงพระมหากรุณาธิคุณของรัชกาลใด?", choices:["รัชกาลที่ 1","รัชกาลที่ 2","รัชกาลที่ 3","รัชกาลที่ 4"], ans:1, explain:"สุนทรภู่ระลึกถึงรัชกาลที่ 2 ซึ่งเคยทรงอุปถัมภ์"},
+      {stop:3, q:"บทโรงเหล้าเปรียบเทียบ 'เมาเหล้า' กับอะไร?", choices:["เมาเรือ","เมารัก / เมาใจ","เมาแดด","เมาขนม"], ans:1, explain:"เมาเหล้าสร่างได้ แต่เมาใจหรือเมารักหายยากกว่า"}
+    ],
+    mini:"sequence"
+  },
+  {
+    id:1, cls:"nonthaburi", title:"นนทบุรี", icon:"🌿",
+    desc:"ถอดรหัสชื่อสถานที่ริมแม่น้ำ เช่น บางจาก บางพลู บางพลัด บางโพธิ์ บ้านญวน วัดเขมา ตลาดแก้ว ตลาดขวัญ",
+    stops:["บางจาก","บางพลู","บางพลัด","บางโพธิ์","บ้านญวน","วัดเขมา","ตลาดแก้ว","ตลาดขวัญ"],
+    questions:[
+      {stop:2, q:"คำว่า 'บางพลัด' ทำให้นึกถึงความหมายใดในนิราศ?", choices:["การค้าขาย","การพลัดพราก","การทำบุญ","การกินอาหาร"], ans:1, explain:"บางพลัดโยงกับความรู้สึกพลัดพรากจากคนรักและเมือง"},
+      {stop:3, q:"บางโพธิ์ในนิราศเชื่อมโยงกับสิ่งใด?", choices:["พระพุทธเจ้า / การคุ้มครอง","การแต่งเรือ","ความเมา","การค้าขาย"], ans:0, explain:"คำว่าโพธิ์เชื่อมกับพระพุทธเจ้าและความคุ้มครองทางใจ"},
+      {stop:7, q:"ตลาดแก้วและตลาดขวัญสะท้อนภาพใดของสังคมริมแม่น้ำ?", choices:["ความเงียบร้าง","ความคึกคักของชุมชน","สนามรบ","ป่าใหญ่"], ans:1, explain:"ตลาดสะท้อนชีวิตผู้คนและการค้าขายริมแม่น้ำ"}
+    ],
+    mini:"match"
+  },
+  {
+    id:2, cls:"pathum", title:"ปทุมธานี", icon:"🪷",
+    desc:"ด่านคำสอนสำคัญ ผ่านบางพูด บางเดื่อ และสามโคก/ปทุมธานี",
+    stops:["บางธรณี","เกาะเกร็ด / บ้านมอญ","บางพูด","บ้านใหม่","บางเดื่อ","บางหลวง","สามโคก / ปทุมธานี","บ้านงิ้ว","เกาะใหญ่ราชคราม"],
+    questions:[
+      {stop:2, q:"บท 'พูดดีเป็นศรีศักดิ์' สอนเรื่องใด?", choices:["การว่ายน้ำ","การพูดดี","การปลูกบัว","การเดินทางเร็ว"], ans:1, explain:"บทบางพูดสอนว่าคำพูดดีทำให้คนรักและมีเกียรติ"},
+      {stop:4, q:"มะเดื่อในบทบางเดื่อเปรียบกับคนแบบใด?", choices:["คนขยัน","คนพาล หวานนอกขมใน","คนใจบุญ","นักเดินเรือ"], ans:1, explain:"ภายนอกดูดี แต่ภายในไม่ดี เหมือนมะเดื่อที่มีแมลงข้างใน"},
+      {stop:6, q:"สามโคกได้รับพระราชทานชื่อใหม่ว่าอะไร?", choices:["ปทุมธานี","นนทบุรี","กรุงเก่า","บางกอก"], ans:0, explain:"สามโคกเปลี่ยนชื่อเป็นปทุมธานี"}
+    ],
+    mini:"goodWords"
+  },
+  {
+    id:3, cls:"ayutthaya", title:"พระนครศรีอยุธยา", icon:"🏯",
+    desc:"ปลายทางสำคัญ วัดพระเมรุ เจดีย์ภูเขาทอง และเดินทางกลับวัดอรุณ",
+    stops:["กรุงเก่า","วัดพระเมรุ","เจดีย์ภูเขาทอง","กลับกรุงเทพฯ วัดอรุณ"],
+    questions:[
+      {stop:1, q:"ที่วัดพระเมรุกลางคืนเกิดเหตุการณ์ใด?", choices:["มีโจรเข้ามาล้วงเรือ","มีฝนหิมะตก","เรือจมทันที","พบเสือ"], ans:0, explain:"ตอนกลางคืนมีโจรเข้ามาล้วงเรือ แต่ไม่เสียของสำคัญ"},
+      {stop:2, q:"เมื่อเห็นเจดีย์ภูเขาทอง สุนทรภู่ได้ข้อคิดเรื่องใด?", choices:["ความไม่เที่ยง","การค้าขาย","การทำอาหาร","การเล่นดนตรี"], ans:0, explain:"เจดีย์ที่ชำรุดทำให้คิดถึงอนิจจัง ความไม่เที่ยง"},
+      {stop:3, q:"นิราศภูเขาทองเดินทางกลับมาจบที่ใด?", choices:["วัดอรุณ","บางพูด","โรงเหล้า","ตลาดแก้ว"], ans:0, explain:"เดินทางกลับมาจบที่วัดอรุณ"}
+    ],
+    mini:"finalCase"
+  }
+];
+
+let score = Number(localStorage.getItem("nira_score")||0);
+let clues = Number(localStorage.getItem("nira_clues")||0);
+let completed = JSON.parse(localStorage.getItem("nira_completed")||"[]");
+let currentStage = null;
+let qIndex = 0;
+let answered = false;
+let miniState = {};
+
+function save(){
+  localStorage.setItem("nira_score", score);
+  localStorage.setItem("nira_clues", clues);
+  localStorage.setItem("nira_completed", JSON.stringify(completed));
+}
+function updateTop(){
+  document.getElementById("score").textContent = score;
+  document.getElementById("clues").textContent = clues;
+  const pct = Math.min(100, (completed.length/4)*100);
+  document.getElementById("progress").style.width = pct + "%";
+}
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  updateTop();
+}
+function renderHome(){
+  const grid = document.getElementById("stageGrid");
+  grid.innerHTML = "";
+  stages.forEach((s,i)=>{
+    const btn = document.createElement("button");
+    btn.className = `stageCard ${s.cls} ${completed.includes(i) ? "done":""}`;
+    btn.innerHTML = `<div class="stageNo">${i+1}</div><div class="stageTitle">${s.icon} ${s.title}</div><div class="stageDesc">${s.desc}</div>`;
+    btn.onclick=()=>startStage(i);
+    grid.appendChild(btn);
+  });
+  if(completed.length===4){
+    const doneBtn=document.createElement("button");
+    doneBtn.className="stageCard ayutthaya";
+    doneBtn.innerHTML=`<div class="stageNo">🏆</div><div class="stageTitle">ดูผลคะแนน</div><div class="stageDesc">สรุปตำแหน่งนักสืบและข้อคิดจากเรื่อง</div>`;
+    doneBtn.onclick=showResult;
+    grid.appendChild(doneBtn);
+  }
+  updateTop();
+}
+function startStage(i){
+  currentStage = i;
+  qIndex=0;
+  answered=false;
+  const s=stages[i];
+  document.getElementById("stageBadge").textContent = `ด่านที่ ${i+1}: ${s.title}`;
+  renderStops();
+  renderQuestion();
+  show("stageScreen");
+}
+function renderStops(){
+  const s=stages[currentStage];
+  const list=document.getElementById("stopList");
+  list.innerHTML="";
+  s.stops.forEach((name,i)=>{
+    const div=document.createElement("div");
+    div.className="stop";
+    div.id="stop_"+i;
+    div.innerHTML=`<span class="num">${i+1}</span><span>${name}</span>`;
+    list.appendChild(div);
+  });
+}
+function renderQuestion(){
+  answered=false;
+  const s=stages[currentStage];
+  const q=s.questions[qIndex];
+  document.querySelectorAll(".stop").forEach(x=>x.classList.remove("activeStop"));
+  const active=document.getElementById("stop_"+q.stop);
+  if(active) active.classList.add("activeStop");
+  const pos = 18 + (qIndex/(Math.max(1,s.questions.length-1))) * 330;
+  document.getElementById("boat").style.top = Math.min(360,pos)+"px";
+  document.getElementById("qTitle").textContent = `คำถามที่ ${qIndex+1} / ${s.questions.length}`;
+  document.getElementById("qText").textContent = q.q;
+  const choices=document.getElementById("choices");
+  choices.innerHTML="";
+  q.choices.forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.textContent=c;
+    b.onclick=()=>answerChoice(i,b);
+    choices.appendChild(b);
+  });
+  document.getElementById("feedback").className="feedback";
+  document.getElementById("feedback").textContent="";
+  document.getElementById("nextQ").disabled=true;
+  document.getElementById("nextQ").style.display="inline-block";
+  document.getElementById("miniBtn").style.display="none";
+}
+function answerChoice(i,btn){
+  if(answered) return;
+  answered=true;
+  const s=stages[currentStage];
+  const q=s.questions[qIndex];
+  const buttons=[...document.querySelectorAll(".choice")];
+  buttons.forEach((b,idx)=>{
+    if(idx===q.ans)b.classList.add("correct");
+    if(idx===i && i!==q.ans)b.classList.add("wrong");
+  });
+  const fb=document.getElementById("feedback");
+  if(i===q.ans){
+    score += 10;
+    clues += 1;
+    fb.className="feedback good";
+    fb.innerHTML=`✅ ถูกต้อง! +10 คะแนน<br>${q.explain}`;
+  }else{
+    fb.className="feedback bad";
+    fb.innerHTML=`❌ ยังไม่ถูกนะ คำตอบที่ถูกคือ “${q.choices[q.ans]}”<br>${q.explain}`;
+  }
+  save(); updateTop();
+  document.getElementById("nextQ").disabled=false;
+}
+function nextQuestion(){
+  const s=stages[currentStage];
+  qIndex++;
+  if(qIndex >= s.questions.length){
+    document.getElementById("nextQ").style.display="none";
+    document.getElementById("miniBtn").style.display="inline-block";
+    document.getElementById("feedback").className="feedback good";
+    document.getElementById("feedback").innerHTML="🎯 ผ่านคำถามหลักแล้ว! ต่อไปเล่น Mini Game เพื่อเก็บหลักฐานพิเศษ";
+  }else renderQuestion();
+}
+function startMiniGame(){
+  const s=stages[currentStage];
+  document.getElementById("miniBadge").textContent = `Mini Game ด่านที่ ${currentStage+1}: ${s.title}`;
+  document.getElementById("miniTitle").textContent = getMiniTitle(s.mini);
+  renderMini(s.mini);
+  document.getElementById("miniFeedback").className="feedback";
+  show("miniScreen");
+}
+function getMiniTitle(type){
+  return {
+    sequence:"เรียงลำดับเส้นทางกรุงเทพฯ",
+    match:"จับคู่สถานที่กับความหมาย",
+    goodWords:"เลือกคำพูดที่ดี",
+    finalCase:"ไขคดีพระธาตุและความไม่เที่ยง"
+  }[type];
+}
+function renderMini(type){
+  const box=document.getElementById("miniContent");
+  box.innerHTML="";
+  miniState={type};
+  if(type==="sequence"){
+    miniState.items=["หน้าวัง","วัดราชบุรณะ","โรงเหล้า","วัดประโคนปัก"];
+    box.innerHTML=`<p><b>ภารกิจ:</b> เรียงลำดับสถานที่ให้ถูกต้อง จากต้นทางไปปลายด่าน</p><div class="sortList" id="sortList"></div>`;
+    renderSort();
+  }
+  if(type==="match"){
+    miniState.selected=null;
+    const meanings=[
+      ["บางพลัด","การพลัดพราก"],
+      ["บางโพธิ์","ขอพระคุ้มครอง"],
+      ["ตลาดขวัญ","ชุมชนค้าขาย"],
+      ["วัดเขมา","ระลึกถึงงานฉลอง"]
+    ];
+    miniState.matches={};
+    box.innerHTML=`<p><b>ภารกิจ:</b> กดเลือกความหมาย แล้วนำไปใส่ให้ตรงกับสถานที่</p>
+      <div class="wordBank">${meanings.map(m=>`<button class="chip" onclick="pickMeaning('${m[1]}', this)">${m[1]}</button>`).join("")}</div>
+      <div class="matchGrid">${meanings.map(m=>`<div class="matchItem">${m[0]}</div><div class="dropZone" onclick="dropMeaning('${m[0]}', this)">แตะเพื่อวางคำตอบ</div>`).join("")}</div>`;
+  }
+  if(type==="goodWords"){
+    miniState.goodChoices=[];
+    const choices=["ไม่เป็นไร เดี๋ยวเราช่วยนะ","ทำไมทำช้าจัง","ลองใหม่ได้นะ เก่งขึ้นแน่","เรื่องของเธอ ไม่เกี่ยวกับเรา"];
+    box.innerHTML=`<p><b>ภารกิจ:</b> เลือกคำพูดที่ดี 2 ประโยค ตามบท “พูดดีเป็นศรีศักดิ์”</p>
+    <div class="wordBank">${choices.map((c,i)=>`<button class="chip" onclick="toggleGood(${i}, this)">${c}</button>`).join("")}</div>`;
+  }
+  if(type==="finalCase"){
+    miniState.finalAnswers=[];
+    const choices=["ความไม่เที่ยง","อนิจจัง","อวดดี","ทำบุญ","ไม่ควรยึดติด","ล้อเลียนเพื่อน"];
+    box.innerHTML=`<p><b>ภารกิจ:</b> เลือกหลักฐานที่เกี่ยวกับข้อคิดตอนเจดีย์ภูเขาทอง 3 ข้อ</p>
+    <div class="wordBank">${choices.map((c,i)=>`<button class="chip" onclick="toggleFinal(${i}, this)">${c}</button>`).join("")}</div>`;
+  }
+}
+function renderSort(){
+  const list=document.getElementById("sortList");
+  list.innerHTML=miniState.items.map((it,i)=>`
+    <div class="sortItem">
+      <span>${i+1}. ${it}</span>
+      <span class="sortBtns">
+        <button onclick="moveSort(${i},-1)">▲</button>
+        <button onclick="moveSort(${i},1)">▼</button>
+      </span>
+    </div>`).join("");
+}
+function moveSort(i,dir){
+  const j=i+dir;
+  if(j<0||j>=miniState.items.length) return;
+  [miniState.items[i],miniState.items[j]]=[miniState.items[j],miniState.items[i]];
+  renderSort();
+}
+function pickMeaning(val, el){
+  miniState.selected=val;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("selected"));
+  el.classList.add("selected");
+}
+function dropMeaning(place, el){
+  if(!miniState.selected) return;
+  miniState.matches[place]=miniState.selected;
+  el.textContent=miniState.selected;
+  el.classList.add("filled");
+}
+function toggleGood(i, el){
+  el.classList.toggle("selected");
+  if(miniState.goodChoices.includes(i)){
+    miniState.goodChoices=miniState.goodChoices.filter(x=>x!==i);
+  }else miniState.goodChoices.push(i);
+}
+function toggleFinal(i, el){
+  el.classList.toggle("selected");
+  if(miniState.finalAnswers.includes(i)){
+    miniState.finalAnswers=miniState.finalAnswers.filter(x=>x!==i);
+  }else miniState.finalAnswers.push(i);
+}
+function checkMiniGame(){
+  const fb=document.getElementById("miniFeedback");
+  let ok=false, msg="";
+  if(miniState.type==="sequence"){
+    ok = miniState.items.join("|")==="วัดราชบุรณะ|หน้าวัง|วัดประโคนปัก|โรงเหล้า";
+    msg = ok ? "เรียงเส้นทางถูกต้อง!" : "ลำดับที่ถูกคือ วัดราชบุรณะ → หน้าวัง → วัดประโคนปัก → โรงเหล้า";
+  }
+  if(miniState.type==="match"){
+    const ans={"บางพลัด":"การพลัดพราก","บางโพธิ์":"ขอพระคุ้มครอง","ตลาดขวัญ":"ชุมชนค้าขาย","วัดเขมา":"ระลึกถึงงานฉลอง"};
+    ok = Object.keys(ans).every(k=>miniState.matches[k]===ans[k]);
+    msg = ok ? "จับคู่ได้แม่นมาก!" : "ลองดูคำใบ้: บางพลัด=พลัดพราก, บางโพธิ์=พระคุ้มครอง, ตลาดขวัญ=ชุมชนค้าขาย, วัดเขมา=งานฉลอง";
+  }
+  if(miniState.type==="goodWords"){
+    const selected = miniState.goodChoices.sort().join(",");
+    ok = selected==="0,2";
+    msg = ok ? "เลือกคำพูดดีได้ถูกต้อง!" : "คำพูดที่ดีคือ “ไม่เป็นไร เดี๋ยวเราช่วยนะ” และ “ลองใหม่ได้นะ เก่งขึ้นแน่”";
+  }
+  if(miniState.type==="finalCase"){
+    const selected = miniState.finalAnswers.sort().join(",");
+    ok = selected==="0,1,4";
+    msg = ok ? "ไขคดีข้อคิดสำเร็จ!" : "หลักฐานที่ถูกคือ ความไม่เที่ยง, อนิจจัง, ไม่ควรยึดติด";
+  }
+  if(ok){
+    score += 20;
+    clues += 2;
+    fb.className="feedback good";
+    fb.innerHTML=`✅ สำเร็จ! +20 คะแนน +2 หลักฐาน<br>${msg}`;
+  }else{
+    fb.className="feedback bad";
+    fb.innerHTML=`🕵️ ยังไม่ผ่าน Mini Game<br>${msg}`;
+  }
+  save(); updateTop();
+}
+function finishStage(){
+  if(!completed.includes(currentStage)){
+    completed.push(currentStage);
+    save();
+  }
+  if(completed.length===4) showResult();
+  else { renderHome(); show("home"); }
+}
+function backToStage(){ show("stageScreen"); }
+function goHome(){ renderHome(); show("home"); }
+function showResult(){
+  document.getElementById("finalScore").textContent = score;
+  let rank="นักสืบฝึกหัด";
+  if(score>=220) rank="ยอดนักสืบวรรณคดีระดับตำนาน 🏆";
+  else if(score>=160) rank="นักสืบภูเขาทองมือโปร ⭐";
+  else if(score>=100) rank="นักสืบวรรณคดีเก่งมาก 🔎";
+  document.getElementById("rankText").innerHTML = `คุณได้ตำแหน่ง: <b>${rank}</b><br>หลักฐานที่รวบรวมได้ ${clues} ชิ้น`;
+  show("resultScreen");
+}
+function resetGame(){
+  score=0; clues=0; completed=[];
+  save(); renderHome(); show("home");
+}
+renderHome();
+updateTop();
+</script>
+</body>
+</html>
